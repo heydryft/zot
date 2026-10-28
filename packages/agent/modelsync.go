@@ -105,13 +105,13 @@ func ValidateAndRepairConfig() {
 			// Gateway providers can serve routed model ids like
 			// "deepseek/deepseek-v4-flash" even when the local catalog does not
 			// know them. Preserve only routed ids; plain typos are still repaired.
-			if cfg.Provider == "cheaperinference" || cfg.Provider == "opper" || cfg.Provider == provider.LMStudioProviderID || isDiscoverableCustomProvider(cfg.Provider) || (isGatewayProvider(cfg.Provider) && isGatewayRoutedModelID(cfg.Model)) {
+			if cfg.Provider == "cheaperinference" || cfg.Provider == "opper" || cfg.Provider == provider.LMStudioProviderID || isDiscoverableCustomProvider(cfg.Provider) || ((isGatewayProvider(cfg.Provider) || cfg.Provider == "runcrate") && isGatewayRoutedModelID(cfg.Model)) {
 				// Local discovery is transient. Preserve the selected LM Studio
 				// or discovery-enabled custom provider ID even if another
-				// provider has an identically named model. Routed gateway IDs
-				// are also valid without a catalog entry. Cheaper Inference and
-				// Opper use plain IDs, which must survive startup before
-				// discovery finishes.
+				// provider has an identically named model. Routed gateway and
+				// Runcrate IDs are also valid without a catalog entry. Cheaper
+				// Inference and Opper use plain IDs, which must survive startup
+				// before discovery finishes.
 			} else if m, err := provider.FindModel("", cfg.Model); err == nil {
 				fix := defaultModelForProvider(cfg.Provider)
 				fmt.Fprintf(os.Stderr,
@@ -292,6 +292,13 @@ func refreshModels() {
 			// Gondola's catalog is also public. Gate discovery on a credential so
 			// its text models only fill the picker for users of the provider.
 			if live, err := provider.DiscoverGondola(ctx, ""); err == nil {
+				all = append(all, live...)
+			}
+		}
+		if _, _, err := resolveCredentialForBackground(ctx, "runcrate"); err == nil {
+			// Runcrate's catalog is public too. Gate discovery on a credential
+			// so its chat models only fill the picker for users of the provider.
+			if live, err := provider.DiscoverRuncrate(ctx, ""); err == nil {
 				all = append(all, live...)
 			}
 		}
