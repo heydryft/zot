@@ -312,9 +312,11 @@ OpenAI-compatible inference API at `https://api.runcrate.ai/v1`. Model IDs are
 
 Runcrate's model list is public. When a Runcrate key is configured, catalog
 discovery adds its tool-capable chat models to `/model`, including published
-context/output limits, vision, reasoning, and token prices. Image, video,
-audio, and embedding models are excluded. The key probe uses the same list,
-so a mistyped key is reported by the first request rather than by `/login`.
+context/output limits, vision, reasoning, and token prices. If the shared
+catalog cache has no Runcrate models, discovery runs even while that cache
+is fresh. Image, video, audio, and embedding models are excluded. The key
+probe uses the same list, so a mistyped key is reported by the first request
+rather than by `/login`.
 
 Explicit and saved `vendor/model` IDs are preserved before discovery finishes
 and are validated by the API. Without catalog metadata, requests use a

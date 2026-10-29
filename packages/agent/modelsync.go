@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -295,9 +296,12 @@ func refreshModels() {
 				all = append(all, live...)
 			}
 		}
+	}
+
+	// A fresh shared cache may predate Runcrate login. Discover its public
+	// catalog when missing, without refreshing unrelated providers or their TTL.
+	if !cacheFresh || !slices.ContainsFunc(cached.Models, func(m provider.Model) bool { return m.Provider == "runcrate" }) {
 		if _, _, err := resolveCredentialForBackground(ctx, "runcrate"); err == nil {
-			// Runcrate's catalog is public too. Gate discovery on a credential
-			// so its chat models only fill the picker for users of the provider.
 			if live, err := provider.DiscoverRuncrate(ctx, ""); err == nil {
 				all = append(all, live...)
 			}
